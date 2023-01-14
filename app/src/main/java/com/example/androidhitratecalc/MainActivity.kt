@@ -4,13 +4,17 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
 import com.example.androidhitratecalc.ui.theme.AndroidHitRateCalcTheme
 import java.lang.Math.pow
 import java.lang.StrictMath.pow
@@ -22,13 +26,13 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-
+            ContentView()
         }
     }
 }
 
-@Composable
-fun ContentView() {
+//region ContentView
+@Composable fun ContentView() {
     var dataModel = remember {  HitRateDataModel() }
 
     AndroidHitRateCalcTheme {
@@ -36,22 +40,46 @@ fun ContentView() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colors.background
         ) {
-
+            Column() {
+                TraitList(traitList = dataModel.evasionTraits.value)
+            }
         }
     }
 }
+//endregion
 
+//region TraitsSection
+//endregion
 
-
-class HitRateDataModel {
-    val agility = mutableStateOf("")
-    val evadeLuck = mutableStateOf("")
-    val evadeBonus = mutableStateOf("")
-    val dex = mutableStateOf("")
-    val accLuck = mutableStateOf("")
-    val accbonus = mutableStateOf("")
-
+//region TraitList
+@Composable fun TraitList(traitList: List<Trait>) {
+    Column() {
+        traitList.forEach { trait -> 
+            TraitRow(trait = trait)
+        }
+    }
 }
+//endregion
+
+//region TraitRow
+@Composable fun TraitRow(trait: Trait) {
+    Row {
+        Surface(color = Color.Black) {
+            Text(
+                text = trait.name,
+                color = Color.White,
+                modifier = Modifier.padding(17.dp)
+            )
+        }
+        OutlinedTextField(
+            value = trait.amount,
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+            onValueChange = { trait.amount = it }
+        )
+    }
+}
+
+//endregion
 
 // region Preview
 @Preview(showBackground = true)
@@ -59,6 +87,17 @@ class HitRateDataModel {
 fun DefaultPreview() {
     ContentView()
 }
+//endregion
+
+//region HitRateDataModel
+class HitRateDataModel: ViewModel() {
+    val evasionTraits = mutableStateOf(listOf(Trait(name = "Agility"), Trait(id = 1, name = "Luck"), Trait(id = 2, name = "Bonus")))
+    val accuracyTraits = mutableStateOf(listOf(Trait(name = "Dexterity"), Trait(id = 1, name = "Luck"), Trait(id = 2, name = "Bonus")))
+}
+//endregion
+
+//region Trait
+data class Trait(var id: Int = 0, var name: String = "", var amount: String = "")
 //endregion
 
 //region HitRateCalculator
