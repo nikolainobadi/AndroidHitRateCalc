@@ -4,16 +4,20 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import com.example.androidhitratecalc.ui.theme.AndroidHitRateCalcTheme
 import java.lang.Math.pow
@@ -33,7 +37,12 @@ class MainActivity : ComponentActivity() {
 
 //region ContentView
 @Composable fun ContentView() {
-    var dataModel = remember {  HitRateDataModel() }
+    val agilityAmount = remember {  mutableStateOf("") }
+    val evadeLuckAmount = remember {  mutableStateOf("") }
+    val evadeBonusAmount = remember {  mutableStateOf("") }
+    val dexAmount = remember {  mutableStateOf("") }
+    val accLuckAmount = remember {  mutableStateOf("") }
+    val accBonusAmount = remember {  mutableStateOf("") }
 
     AndroidHitRateCalcTheme {
         Surface(
@@ -41,12 +50,63 @@ class MainActivity : ComponentActivity() {
             color = MaterialTheme.colors.background
         ) {
             Column() {
-                TraitList(traitList = dataModel.evasionTraits.value)
+                Column() {
+                    Row(modifier = Modifier.padding(20.dp)) {
+                        Text(text = "Evasion", modifier = Modifier.padding(horizontal = 20.dp))
+                        Text(text = "${HitRateCalculator.getEvasionRate(agility = agilityAmount.value, luck = evadeLuckAmount.value, bonus = evadeBonusAmount.value)}%", modifier = Modifier.padding(horizontal = 80.dp))
+                    }
+
+                    TraitRow(name = "Agility", amount = agilityAmount)
+                    TraitRow(name = "Luck", amount = evadeLuckAmount)
+                    TraitRow(name = "Bonus", amount = evadeBonusAmount)
+                }
+
+                Column() {
+                    Row(modifier = Modifier.padding(20.dp)) {
+                        Text(text = "Accuracy", modifier = Modifier.padding(horizontal = 20.dp))
+                        Text(text = "${HitRateCalculator.getAccuracyRate(dex = dexAmount.value, luck = accLuckAmount.value, bonus = accBonusAmount.value)}%", modifier = Modifier.padding(horizontal = 80.dp))
+                    }
+                    TraitRow(name = "Dexterity", amount = dexAmount)
+                    TraitRow(name = "Luck", amount = accLuckAmount)
+                    TraitRow(name = "Bonus", amount = accBonusAmount)
+                }
+
+                Row() {
+                    Text(text = "Chance to Evade", modifier = Modifier.padding(horizontal = 20.dp))
+                    Text(text = "${HitRateCalculator.getChanceToEvade(evasionRate = HitRateCalculator.getEvasionRate(agility = agilityAmount.value, luck = evadeLuckAmount.value, bonus = evadeBonusAmount.value), accuracyRate = HitRateCalculator.getAccuracyRate(dex = dexAmount.value, luck = accLuckAmount.value, bonus = accBonusAmount.value))}%")
+                }
             }
         }
     }
 }
 //endregion
+class TraitsViewModel : ViewModel() {
+    val agilityAmount = MutableLiveData("")
+    val luckAmount = MutableLiveData("")
+    val bonusAmount = MutableLiveData("")
+}
+
+
+@Composable fun TraitRow(name: String, amount: MutableState<String>) {
+    val focusManager = LocalFocusManager.current
+
+    Row {
+        Surface(color = Color.Black) {
+            Text(
+                text = name,
+                color = Color.White,
+                modifier = Modifier.padding(17.dp)
+            )
+        }
+        OutlinedTextField(
+            value = amount.value,
+            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+            keyboardActions = KeyboardActions(onDone = { focusManager.clearFocus() }),
+            onValueChange = { amount.value = it }
+        )
+    }
+}
+
 
 //region TraitsSection
 //endregion
@@ -55,29 +115,29 @@ class MainActivity : ComponentActivity() {
 @Composable fun TraitList(traitList: List<Trait>) {
     Column() {
         traitList.forEach { trait -> 
-            TraitRow(trait = trait)
+//            TraitRow(trait = trait)
         }
     }
 }
 //endregion
 
 //region TraitRow
-@Composable fun TraitRow(trait: Trait) {
-    Row {
-        Surface(color = Color.Black) {
-            Text(
-                text = trait.name,
-                color = Color.White,
-                modifier = Modifier.padding(17.dp)
-            )
-        }
-        OutlinedTextField(
-            value = trait.amount,
-            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
-            onValueChange = { trait.amount = it }
-        )
-    }
-}
+//@Composable fun TraitRow(name: String, amount: String) {
+//    Row {
+//        Surface(color = Color.Black) {
+//            Text(
+//                text = name,
+//                color = Color.White,
+//                modifier = Modifier.padding(17.dp)
+//            )
+//        }
+//        OutlinedTextField(
+//            value = amount,
+//            keyboardOptions = KeyboardOptions.Default.copy(keyboardType = KeyboardType.Number),
+//            onValueChange = { amount = it }
+//        )
+//    }
+//}
 
 //endregion
 
